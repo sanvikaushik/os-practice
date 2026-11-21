@@ -11,7 +11,8 @@ int main(void) {
     pthread_t t;
 
     pthread_create(&t, NULL, worker, NULL);
-
+    pthread_join(t, NULL);
+    
     printf("Main finished!\n");
     return 0;
 }
