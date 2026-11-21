@@ -1,3 +1,5 @@
+#include <semaphore.h>  // sem_t, sem_init, sem_wait, sem_post, sem_destroy
+#include <stdlib.h>     // malloc, free
 typedef struct {
     // User defined data may be declared here.
     sem_t s1; 
