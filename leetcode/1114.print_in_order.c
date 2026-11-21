@@ -1,52 +1,43 @@
-#include <semaphore.h>  // sem_t, sem_init, sem_wait, sem_post, sem_destroy
-#include <stdlib.h>     // malloc, free
 typedef struct {
-    // User defined data may be declared here.
-    sem_t s1; 
-    sem_t s2; 
-    
-} Foo;
+    int n;
+    sem_t s1;
+    sem_t s2;
+} FooBar;
 
-// Function Declaration, do not remove
-void printFirst();
-void printSecond();
-void printThird();
+// Function declarations. Do not change or remove this line
+void printFoo();
+void printBar();
 
-Foo* fooCreate() {
-    Foo* obj = (Foo*) malloc(sizeof(Foo));
-    
-    // Initialize user defined data here.
-        sem_init(&obj->s1, 0, 0);
-    sem_init(&obj->s2, 0, 0);
-    
+FooBar* fooBarCreate(int n) {
+    FooBar* obj = (FooBar*) malloc(sizeof(FooBar));
+    obj->n = n;
+    sem_init(&obj->s1, 0, 0);
+    sem_init(&obj->s2, 0, 1);
     return obj;
 }
 
-void first(Foo* obj) {
+void foo(FooBar* obj) {
     
-    // printFirst() outputs "first". Do not change or remove this line.
-
-    printFirst();
-    sem_post(&obj->s1);
+    for (int i = 0; i < obj->n; i++) {
+        
+        sem_wait(&obj->s2);
+        // printFoo() outputs "foo". Do not change or remove this line.
+        printFoo();
+        sem_post(&obj->s1);
+    }
 }
 
-void second(Foo* obj) {
+void bar(FooBar* obj) {
     
-    // printSecond() outputs "second". Do not change or remove this line.
-    sem_wait(&obj->s1);
-    printSecond();
-    sem_post(&obj->s2);
+    for (int i = 0; i < obj->n; i++) {
+        sem_wait(&obj->s1);
+        // printBar() outputs "bar". Do not change or remove this line.
+        printBar();
+        sem_post(&obj->s2);
+    }
 }
 
-void third(Foo* obj) {
-    
-    // printThird() outputs "third". Do not change or remove this line.
-    sem_wait(&obj->s2);
-    printThird();
-}
-
-void fooFree(Foo* obj) {
-    // User defined data may be cleaned up here.
+void fooBarFree(FooBar* obj) {
     sem_destroy(&obj->s1);
     sem_destroy(&obj->s2);
     free(obj);
