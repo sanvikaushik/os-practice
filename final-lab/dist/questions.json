@@ -1,0 +1,827 @@
+[
+  {
+    "id": 1,
+    "topic": "Scheduling",
+    "title": "Preemption under pressure",
+    "kind": "Trace",
+    "prompt": "One CPU; zero switch cost. A=(arrival 0, burst 7), B=(2,3), C=(3,1), D=(5,2). Use SRTF; retain running process on ties. Draw the timeline and calculate B turnaround/wait and the longest response/wait.",
+    "answer": "0\u20132 A; 2\u20133 B; 3\u20134 C; 4\u20136 B; 6\u20138 D; 8\u201313 A. At t=5 B has 1 left, so D does not preempt. B turnaround=6\u22122=4, wait=4\u22123=1. D response=6\u22125=1, the longest. A wait=13\u22120\u22127=6, the longest.",
+    "checks": [
+      "Correct preemptions and t=5 decision",
+      "All boundaries and completions",
+      "Turnaround and wait formulas",
+      "D response and A waiting"
+    ],
+    "source": "Fall 2026 midterm Q4; original tie convention added",
+    "minutes": 5
+  },
+  {
+    "id": 2,
+    "topic": "Synchronization",
+    "title": "Two prerequisites, one semaphore",
+    "kind": "Implement",
+    "prompt": "A loads configuration; B loads data into separate locations. They may overlap. C must wait for BOTH. Use one counting semaphore. Write pseudocode and trace C-first and C-last schedules.",
+    "answer": "Initialize done=0. A: load_config(); post(done). B: load_data(); post(done). C: wait(done); wait(done); calculate(). C-first blocks until two tokens arrive; C-last consumes two stored tokens. A mutex alone gives exclusion, not prerequisite ordering.",
+    "checks": [
+      "Initial count zero",
+      "Post only after each prerequisite",
+      "Two waits before calculation",
+      "Both extreme schedules explained"
+    ],
+    "source": "Fall 2026 midterm Q6",
+    "minutes": 8
+  },
+  {
+    "id": 3,
+    "topic": "Synchronization",
+    "title": "Repair a bounded queue",
+    "kind": "Implement",
+    "prompt": "Capacity N. Producer: lock(m); wait(empty); insert(x); post(full); unlock(m). Explain a deadlock schedule; rewrite producer and consumer, including semaphore initialization.",
+    "answer": "empty=N, full=0, m=1. Producer: wait(empty); wait(m); insert; post(m); post(full). Consumer: wait(full); wait(m); remove; post(m); post(empty). Original: full queue, producer holds m while waiting for empty; consumer cannot acquire m to remove an item.",
+    "checks": [
+      "Concrete full-queue deadlock",
+      "Correct initial values",
+      "Resource wait before mutex",
+      "Both sides release mutex and publish token"
+    ],
+    "source": "Assignment 2; synchronization lecture; original exercise",
+    "minutes": 8
+  },
+  {
+    "id": 4,
+    "topic": "Synchronization",
+    "title": "Condition-variable wakeup trap",
+    "kind": "Implement",
+    "prompt": "Repair: lock(m); if(count==0) cond_wait(cv,m); count--; unlock(m). Give matching post pseudocode and explain atomic wait and spurious wakeups.",
+    "answer": "Use while(count==0) cond_wait(cv,m), then decrement under m. post: lock(m); count++; cond_signal(cv); unlock(m). cond_wait atomically releases m and blocks, then reacquires m before returning. Wakeup does not reserve a permit; another thread can consume it, or wakeup may be spurious.",
+    "checks": [
+      "While predicate loop",
+      "All count accesses protected",
+      "Atomic release and reacquire",
+      "Post increments and signals"
+    ],
+    "source": "Assignment 2 blocking semaphore",
+    "minutes": 8
+  },
+  {
+    "id": 5,
+    "topic": "Memory",
+    "title": "Translate without guessing",
+    "kind": "Trace",
+    "prompt": "Page size 1024 bytes. Pages 0\u2192frame4, 1\u2192frame7, 2 absent, 3\u2192frame2, 4 absent, 5\u2192frame0. Translate decimal addresses 1052, 2221, 5320. Do not resolve faults.",
+    "answer": "1052: page1 offset28 \u2192 7\u00d71024+28=7196. 2221: page2 offset173 \u2192 page fault, no physical address yet. 5320: page5 offset200 \u2192 200. Present and dirty bits serve different purposes.",
+    "checks": [
+      "Correct page/offset splits",
+      "7196",
+      "Fault with no invented frame",
+      "200"
+    ],
+    "source": "Historical final 2016 Q4; fixed values",
+    "minutes": 5
+  },
+  {
+    "id": 6,
+    "topic": "Memory",
+    "title": "TLB cost model",
+    "kind": "Calculate",
+    "prompt": "Memory access=200ns. Single-level page table resides in memory. Serial TLB lookup=20ns on hit AND miss; hit rate 85%. No page faults. Find time with no TLB and effective time with TLB.",
+    "answer": "Without TLB: page-table read + data read =400ns. Hit=20+200=220ns. Miss=20+200+200=420ns. EAT=.85\u00d7220+.15\u00d7420=250ns. This assumes a serial lookup, not overlapped hardware.",
+    "checks": [
+      "Two accesses without TLB",
+      "Hit 220ns",
+      "Miss 420ns",
+      "Weighted result 250ns and assumptions"
+    ],
+    "source": "Historical final 2016 Q2",
+    "minutes": 5
+  },
+  {
+    "id": 7,
+    "topic": "Virtual memory",
+    "title": "FIFO versus LRU",
+    "kind": "Trace",
+    "prompt": "Three initially empty frames; reference string 1,2,3,1,4,2,5. Draw every frame state for FIFO and LRU. Count faults and explain why hits update only one policy\u2019s ordering.",
+    "answer": "FIFO: [1,-,-] F; [1,2,-] F; [1,2,3] F; hit1; [4,2,3] F; hit2; [4,5,3] F. Total5. LRU: [1,-,-] F; [1,2,-] F; [1,2,3] F; hit1; [1,4,3] F; [1,4,2] F; [5,4,2] F. Total6. FIFO tracks load age; LRU updates last-use on every access.",
+    "checks": [
+      "Every state for both policies",
+      "FIFO 5 faults",
+      "LRU 6 faults",
+      "Hits affect recency but not FIFO age"
+    ],
+    "source": "Assignment 3; virtual-memory lecture; original trace",
+    "minutes": 5
+  },
+  {
+    "id": 8,
+    "topic": "Virtual memory",
+    "title": "Clock hand and dirty eviction",
+    "kind": "Trace",
+    "prompt": "Two frames, hand=0; reference bits set on every access/load. On replacement, clear set bits and advance until zero; replace and advance once. Trace W0,R1,R0,R2,R1,R3. Track frames, bits, hand, faults and writebacks.",
+    "answer": "W0: [0,-], bits[1,0], hand0. R1: [0,1], [1,1], hand0. R0 hit, unchanged. R2: clear both bits, evict dirty0 at frame0 \u2192 [2,1], bits[1,0], hand1; one writeback. R1 hit \u2192 bits[1,1], hand1. R3: clear frame1 then0, evict1 at frame1 \u2192 [2,3], bits[0,1], hand0. Four faults, one writeback. Free-frame loads here do not move the hand.",
+    "checks": [
+      "Hand movement and convention",
+      "Four faults",
+      "One dirty writeback",
+      "Hit resets reference bit"
+    ],
+    "source": "Assignment 3 Clock conventions; original trace",
+    "minutes": 5
+  },
+  {
+    "id": 9,
+    "topic": "Virtual memory",
+    "title": "Implement address validation",
+    "kind": "Implement",
+    "prompt": "Write C-like pseudocode validating page_size, virtual_pages, frames and uint64 multiplication, then splitting an address. Do not confuse translation with residency lookup.",
+    "answer": "Reject page_size==0 or (page_size & (page_size\u22121))!=0. Reject virtual_pages==0 or frames==0 or frames>virtual_pages. Before multiplying, reject virtual_pages>UINT64_MAX/page_size. limit=virtual_pages*page_size; reject address>=limit. page=address/page_size; offset=address%page_size. Residency is checked later.",
+    "checks": [
+      "Power-of-two and positive checks",
+      "Overflow checked before multiplication",
+      "Strict address upper bound",
+      "Page/offset distinct from residency"
+    ],
+    "source": "Assignment 3 sections A\u2013B",
+    "minutes": 8
+  },
+  {
+    "id": 10,
+    "topic": "Deadlocks",
+    "title": "Banker safety by hand",
+    "kind": "Trace",
+    "prompt": "One resource type, total 10. Allocation: P0=3,P1=2,P2=2. Maximum: P0=7,P1=4,P2=3. Find Need, Available and a safe sequence. Can P0 immediately receive 3 more units?",
+    "answer": "Available=3; Need=(4,2,1). Safe sequence P2,P1,P0: work3\u21925\u21927\u219210. Tentatively grant P0 3: available0, allocations(6,2,2), needs(1,2,1). No process can finish, so unsafe; defer request. Unsafe does not mean deadlocked already.",
+    "checks": [
+      "Need and available correct",
+      "Valid sequence with work updates",
+      "Tentative grant evaluated",
+      "Unsafe distinguished from deadlocked"
+    ],
+    "source": "Deadlocks lecture; original exercise",
+    "minutes": 5
+  },
+  {
+    "id": 11,
+    "topic": "Storage",
+    "title": "Disk scheduling with direction",
+    "kind": "Calculate",
+    "prompt": "Cylinders 0\u2013199, head50, requests82,170,43,140,24,16,190, initially moving upward. Compute FCFS, SSTF, SCAN and C-LOOK travel; stop when last request is serviced. Count wrap travel.",
+    "answer": "FCFS: 82,170,43,140,24,16,190 \u2192642. SSTF:43,24,16,82,140,170,190 \u2192208. SCAN:82,140,170,190,199,43,24,16 \u2192(199\u221250)+(199\u221216)=332. C-LOOK:82,140,170,190,16,24,43 \u2192140+174+27=341. SCAN reaches endpoint199 before reversing; C-LOOK wraps between extreme requests.",
+    "checks": [
+      "Explicit service orders",
+      "FCFS642 SSTF208",
+      "SCAN332",
+      "C-LOOK341 with wrap counted"
+    ],
+    "source": "Mass-storage lecture; original exercise",
+    "minutes": 5
+  },
+  {
+    "id": 12,
+    "topic": "Files",
+    "title": "Find an indexed file\u2019s limit",
+    "kind": "Calculate",
+    "prompt": "An inode has 12 direct pointers, one single-indirect pointer and one double-indirect pointer. Blocks are 4096B; pointers 4B. Compute data capacity; identify which pointer covers zero-based logical block 1040.",
+    "answer": "1024 pointers per index block. Data blocks=12+1024+1024\u00b2=1,049,612; capacity=4,299,210,752 bytes. Direct covers0\u201311, single12\u20131035, double starts1036. Block1040 uses double: relative4; outer index0, inner index4. Metadata blocks do not add file payload.",
+    "checks": [
+      "1024 fanout",
+      "Correct block count/capacity",
+      "Double starts1036",
+      "Indices 0 and4"
+    ],
+    "source": "File-system implementation lecture; original exercise",
+    "minutes": 5
+  },
+  {
+    "id": 13,
+    "topic": "Foundations",
+    "title": "System call boundary",
+    "kind": "Explain",
+    "prompt": "Trace read(fd,buf,n) from user code to a device and back. Why not let user code execute privileged I/O?",
+    "answer": "The library wrapper prepares arguments and traps into the kernel. Hardware switches privilege and enters a validated handler. Kernel checks fd, permissions and user buffer, obtains cached data or invokes I/O/blocks, copies data and returns count/error in user mode. Privileged access must be mediated to isolate processes and protect hardware.",
+    "checks": [
+      "Trap and privilege transition",
+      "Validation and protection",
+      "Cache/device/blocking path",
+      "Return to user"
+    ],
+    "source": "Intro and OS structures; midterm Q1",
+    "minutes": 5
+  },
+  {
+    "id": 14,
+    "topic": "Foundations",
+    "title": "Kernel versus user drivers",
+    "kind": "Explain",
+    "prompt": "Compare a kernel driver to a separate user-space driver. Give one justified benefit of each and one cost.",
+    "answer": "Kernel driver: direct access and fewer IPC/context-switch costs, but bugs can corrupt kernel state. User driver: fault isolation and restartability, but IPC, scheduling and copying may add overhead. Neither architecture is universally best.",
+    "checks": [
+      "Kernel performance reason",
+      "User-space isolation reason",
+      "Tradeoffs justified"
+    ],
+    "source": "Fall 2026 midterm Q3",
+    "minutes": 5
+  },
+  {
+    "id": 15,
+    "topic": "Processes",
+    "title": "State transitions under FCFS",
+    "kind": "Trace",
+    "prompt": "P is running; Q ready. P starts blocking I/O; its I/O later completes while Q is still running; Q then terminates. Trace every transition on a nonpreemptive FCFS CPU.",
+    "answer": "P running\u2192waiting; Q ready\u2192running. I/O completes: P waiting\u2192ready; Q keeps running. Q running\u2192terminated; P ready\u2192running. I/O completion is not direct waiting\u2192running when CPU is occupied.",
+    "checks": [
+      "Both transitions at blocking",
+      "Completion goes to ready",
+      "Termination dispatches P"
+    ],
+    "source": "Fall 2026 midterm Q2",
+    "minutes": 5
+  },
+  {
+    "id": 16,
+    "topic": "Processes",
+    "title": "fork, exec, wait",
+    "kind": "Implement",
+    "prompt": "Write pseudocode for a parent that creates a child to execute a command, handles fork/exec errors, and reaps the child. Explain address spaces.",
+    "answer": "pid=fork(); if(pid<0) handle_error(); else if(pid==0){execvp(cmd,args); perror(\"exec\"); _exit(127);} else {while(waitpid(pid,&status,0)<0 && errno==EINTR){} /*check error/status*/}. Child has a separate virtual address space, often copy-on-write. exec replaces its program; successful exec does not return. wait reaps exit status.",
+    "checks": [
+      "Three fork branches",
+      "exec failure exits child",
+      "Parent reaps",
+      "Separate spaces and replacement"
+    ],
+    "source": "Processes lecture; original exercise",
+    "minutes": 8
+  },
+  {
+    "id": 17,
+    "topic": "Threads",
+    "title": "What a thread owns",
+    "kind": "Explain",
+    "prompt": "Classify stack, registers, PC, heap, globals and file descriptors as per-thread or shared within a process. Compare many-to-one with one-to-one.",
+    "answer": "Per-thread: stack, registers and PC. Shared: heap, globals, process file descriptors. Many-to-one maps user threads onto one kernel thread: no simultaneous execution across cores and a blocking kernel operation can block the group. One-to-one permits kernel scheduling on multiple cores with higher kernel resource costs.",
+    "checks": [
+      "Correct private/shared split",
+      "Parallelism comparison",
+      "Blocking and overhead"
+    ],
+    "source": "Threads lecture",
+    "minutes": 5
+  },
+  {
+    "id": 18,
+    "topic": "IPC",
+    "title": "Shared memory is not a lock",
+    "kind": "Implement",
+    "prompt": "Two unrelated processes exchange messages through a shared ring buffer. Describe mapping, initialization and synchronization; compare message passing.",
+    "answer": "Create/open a shared-memory object, set its size, map the same object in both processes. Coordinate one-time initialization. Use process-shared synchronization protecting indices and empty/full counts; mapping alone supplies no mutual exclusion. Shared memory avoids repeated kernel-mediated copies after setup, but speed depends on workload. Message passing simplifies ownership at added communication overhead.",
+    "checks": [
+      "Common mapped object",
+      "Initialization coordinated",
+      "Process-shared synchronization",
+      "Qualified performance comparison"
+    ],
+    "source": "IPC lecture; historical final Q5",
+    "minutes": 8
+  },
+  {
+    "id": 19,
+    "topic": "Scheduling",
+    "title": "Round-robin queue discipline",
+    "kind": "Trace",
+    "prompt": "All arrive at0: A burst5, B burst3, C burst1. RR quantum2, initial order A B C, zero overhead. Give chart, mean waiting and response times.",
+    "answer": "0\u20132 A,2\u20134 B,4\u20135 C,5\u20137 A,7\u20138 B,8\u20139 A. Completion A9 B8 C5. Waits A4 B5 C4; mean13/3. Responses A0 B2 C4; mean2. Response uses first dispatch, not completion.",
+    "checks": [
+      "Complete chart",
+      "Waits4,5,4",
+      "Responses0,2,4"
+    ],
+    "source": "Scheduling lecture; Assignment1",
+    "minutes": 5
+  },
+  {
+    "id": 20,
+    "topic": "Scheduling",
+    "title": "Implement dispatch boundaries",
+    "kind": "Implement",
+    "prompt": "In a discrete-time RR simulator, what must happen when a CPU burst ends exactly as its quantum expires? Explain blocked time versus waiting time.",
+    "answer": "Test burst completion before quantum-expiry requeue: if more I/O remains, enter waiting; otherwise terminate. Only an unfinished ready burst is requeued for quantum expiry. Increment ready waiting only while ready, not while blocked. Document same-tick arrival/I/O/requeue ordering to make traces reproducible.",
+    "checks": [
+      "Completion before requeue",
+      "I/O versus termination",
+      "Ready-only waiting",
+      "Tie ordering documented"
+    ],
+    "source": "Assignment1 simulator",
+    "minutes": 8
+  },
+  {
+    "id": 21,
+    "topic": "Scheduling",
+    "title": "MLFQ and starvation",
+    "kind": "Explain",
+    "prompt": "Queues Q0 RR8, Q1 RR16, Q2 FCFS. A CPU-bound task needs30ms and runs alone. Trace it; explain starvation mitigation under continuing arrivals.",
+    "answer": "Q0 executes0\u20138, demotes; Q1 executes8\u201324, demotes; Q2 executes24\u201330. Under a stream of high-priority arrivals, low queues can starve. Periodic priority boosts or aging improve access; rules for I/O return and preemption must be specified.",
+    "checks": [
+      "8/16/6 execution",
+      "Demotion boundaries",
+      "Starvation and boost/aging"
+    ],
+    "source": "Scheduling lecture and review",
+    "minutes": 5
+  },
+  {
+    "id": 22,
+    "topic": "Synchronization",
+    "title": "Atomic flag spinlock",
+    "kind": "Implement",
+    "prompt": "Write C11-like lock/unlock using atomic_flag and explain memory orders and fairness.",
+    "answer": "Initialize with ATOMIC_FLAG_INIT. lock: while(atomic_flag_test_and_set_explicit(&flag,memory_order_acquire)){}; unlock: atomic_flag_clear_explicit(&flag,memory_order_release). The atomic operation chooses one owner; acquire/release publishes protected writes. Busy waiting consumes CPU; no FIFO or bounded-wait guarantee follows.",
+    "checks": [
+      "Atomic test/set",
+      "Acquire/release",
+      "Initialization",
+      "No unsupported fairness claim"
+    ],
+    "source": "Assignment2 spinlock",
+    "minutes": 8
+  },
+  {
+    "id": 23,
+    "topic": "Synchronization",
+    "title": "Readers can bypass a writer",
+    "kind": "Trace",
+    "prompt": "Reader-preference algorithm: first reader waits(wrt), last reader posts(wrt), count protected by mutex. Reads/writes take5s. Arrivals R1=0,W1=1,R2=3,W2=5,R3=7. FIFO semaphore waiters. Draw intervals.",
+    "answer": "R1 0\u20135; R2 3\u20138; R3 7\u201312. W1 waits until last reader exits at12, writes12\u201317; W2 writes17\u201322. New readers join the active group without waiting on wrt, so FIFO wrt does not prevent writer starvation.",
+    "checks": [
+      "Overlapping reads",
+      "W1 starts12",
+      "W2 17\u201322",
+      "FIFO does not fix reader preference"
+    ],
+    "source": "Fall2026 midterm Q5",
+    "minutes": 5
+  },
+  {
+    "id": 24,
+    "topic": "Synchronization",
+    "title": "Counterexample over intuition",
+    "kind": "Explain",
+    "prompt": "Under sequential consistency, shared want[2]=false. Each thread sets own want=true; while(other want){own want=false; own want=true;} then enters CS. Is mutual exclusion guaranteed? Is progress?",
+    "answer": "Mutual exclusion holds under the stated sequentially consistent model. Immediately before each test of the other flag, a thread has set its own flag true. Once it exits the loop, its own flag stays true until it leaves its critical section, preventing the other from passing a subsequent test. Both cannot successfully pass their tests before the other sets its flag, because each sets its own flag before testing. Progress fails: both set true, both read the other true, both clear their own flag, both set true, and repeat in lockstep forever. This is livelock despite atomic individual reads/writes.",
+    "checks": [
+      "Mutual exclusion invariant",
+      "Atomic ordered assumptions",
+      "Concrete infinite lockstep schedule",
+      "Livelock distinguished from blocking"
+    ],
+    "source": "Fall2026 midterm Q7; verify with marking scheme",
+    "minutes": 5
+  },
+  {
+    "id": 25,
+    "topic": "Deadlocks",
+    "title": "Four necessary conditions",
+    "kind": "Explain",
+    "prompt": "Two threads acquire locks in opposite orders. Show a deadlock and two prevention strategies; distinguish starvation.",
+    "answer": "T0 holds A then waits B; T1 holds B then waits A. Mutual exclusion, hold-and-wait, no preemption and circular wait all hold. Impose a global A-before-B order to break circular wait; or acquire all required resources atomically before doing work to break hold-and-wait. Starvation is indefinite postponement and need not involve a deadlock cycle.",
+    "checks": [
+      "Concrete schedule",
+      "All four conditions",
+      "Two valid prevention strategies",
+      "Starvation distinction"
+    ],
+    "source": "Deadlocks lecture",
+    "minutes": 5
+  },
+  {
+    "id": 26,
+    "topic": "Deadlocks",
+    "title": "Cycles with multiple instances",
+    "kind": "Trace",
+    "prompt": "R has2 instances; S has1. P1 gets R then S; P2 requests S; P3 gets R then requests S. Next P1 releases S (FIFO gives to P2); P2 requests R; P1 requests S. Identify held resources and deadlock.",
+    "answer": "Initially P1 holdsR,S; P3 holdsR; P2,P3 waitS. No deadlock: P1 can finish. Later P2 holdsS and waitsR; P1 and P3 each holdR and waitS (P3 ahead of P1). No available R or S, all blocked: deadlock. A cycle alone is not sufficient with multiple instances; demonstrate no process can proceed.",
+    "checks": [
+      "Initial nondeadlocked state",
+      "FIFO transfer to P2",
+      "Final holdings/waits",
+      "No available escape"
+    ],
+    "source": "Fall2026 midterm Q8",
+    "minutes": 5
+  },
+  {
+    "id": 27,
+    "topic": "Memory",
+    "title": "Allocation and fragmentation",
+    "kind": "Trace",
+    "prompt": "Holes100,500,200,300,600KB in order. Requests212,417,112,426KB. Split holes without compaction. Trace first-fit, best-fit, worst-fit.",
+    "answer": "First-fit:212 in500\u2192288;417 in600\u2192183;112 in288\u2192176;426 fails. Best-fit:212 in300\u219288;417 in500\u219283;112 in200\u219288;426 in600\u2192174. Worst-fit:212 in600\u2192388;417 in500\u219283;112 in388\u2192276;426 fails. Total free space can exceed request while no contiguous hole is large enough: external fragmentation.",
+    "checks": [
+      "All allocations in sequence",
+      "Best-fit fits all",
+      "Failure despite aggregate capacity",
+      "External fragmentation explained"
+    ],
+    "source": "Historical final2016 Q1; fixed417",
+    "minutes": 5
+  },
+  {
+    "id": 28,
+    "topic": "Memory",
+    "title": "Page table size and bits",
+    "kind": "Calculate",
+    "prompt": "32-bit virtual addresses; 4KiB pages; 4-byte PTEs. Find offset bits, number of virtual pages and linear page-table size per process. Why multilevel tables?",
+    "answer": "Offset=12 bits. Virtual page number=20 bits; 2^20 entries. Size=2^20\u00d74=4MiB. Multilevel tables avoid allocating leaf tables for unused address regions; they add translation stages on a TLB miss and do not magically reduce a fully populated mapping.",
+    "checks": [
+      "12/20 bit split",
+      "2^20 entries",
+      "4MiB",
+      "Sparse allocation tradeoff"
+    ],
+    "source": "Main-memory lecture",
+    "minutes": 5
+  },
+  {
+    "id": 29,
+    "topic": "Memory",
+    "title": "Page size tradeoffs",
+    "kind": "Explain",
+    "prompt": "Compare small and large pages in fragmentation, table overhead, TLB reach and I/O.",
+    "answer": "Large pages reduce entry count and improve bytes covered per TLB entry, but increase potential internal fragmentation and unnecessary transfer for sparse access. Small pages improve allocation granularity but require more PTEs and can increase TLB pressure. Workload locality and hardware support determine the best choice.",
+    "checks": [
+      "Fragmentation",
+      "PTE overhead",
+      "TLB reach",
+      "Transfer granularity"
+    ],
+    "source": "Historical final2016 Q3; memory lecture",
+    "minutes": 5
+  },
+  {
+    "id": 30,
+    "topic": "Virtual memory",
+    "title": "Page fault handling",
+    "kind": "Implement",
+    "prompt": "Describe the kernel steps for a valid nonresident page, including a dirty victim and a TLB entry. What changes for an invalid address?",
+    "answer": "Trap; validate address/access. For valid page, get free frame or choose victim; invalidate old mapping/TLB; if dirty, write back; read requested page; update page/frame metadata and valid bits; ensure TLB consistency; restart faulting instruction. I/O may block the process. Invalid access gets an error/signal rather than a demand-load.",
+    "checks": [
+      "Validation before I/O",
+      "Dirty victim writeback",
+      "Mapping/TLB consistency",
+      "Restart versus invalid access"
+    ],
+    "source": "Virtual-memory lecture; Assignment3",
+    "minutes": 8
+  },
+  {
+    "id": 31,
+    "topic": "Virtual memory",
+    "title": "Faults dominate average cost",
+    "kind": "Calculate",
+    "prompt": "1000 memory accesses, 100ns each, 8 faults, 3 dirty evictions. Page read/write each cost1ms in addition to access. Compute total and average; no final flush.",
+    "answer": "Base=100,000ns. Reads=8,000,000ns. Writebacks=3,000,000ns. Total11,100,000ns=11.1ms. Average11,100ns=11.1\u03bcs. Do not charge resident dirty pages at end without an explicit flush requirement.",
+    "checks": [
+      "Base access cost",
+      "Fault read cost",
+      "Dirty write cost",
+      "11.1\u03bcs and no invented flush"
+    ],
+    "source": "Assignment3 cost model; original counts",
+    "minutes": 5
+  },
+  {
+    "id": 32,
+    "topic": "Virtual memory",
+    "title": "Thrashing and working sets",
+    "kind": "Explain",
+    "prompt": "CPU utilization falls while disk paging rises after adding processes. Explain why increasing multiprogramming may worsen this; propose interventions.",
+    "answer": "Aggregate working-set demand exceeds available frames, producing repeated faults and little useful computation. Adding more processes increases demand. Suspend/swap a process, reduce multiprogramming or add memory; use working-set/PFF allocation. Local replacement can limit damage to others but cannot create missing capacity.",
+    "checks": [
+      "Demand exceeds frames",
+      "Paging dominates",
+      "Reduce load/add capacity",
+      "PFF/working-set connection"
+    ],
+    "source": "Virtual-memory lecture",
+    "minutes": 5
+  },
+  {
+    "id": 33,
+    "topic": "Virtual memory",
+    "title": "Why FIFO can get worse",
+    "kind": "Trace",
+    "prompt": "Use FIFO on 1,2,3,4,1,2,5,1,2,3,4,5 with3 and4 frames. State fault counts and contrast a stack algorithm.",
+    "answer": "FIFO gives9 faults with3 frames and10 with4: Belady\u2019s anomaly. FIFO does not preserve resident-set inclusion as frame count increases. LRU and OPT are stack algorithms: with consistent tie handling, the smaller resident set is included in the larger and faults cannot increase with more frames.",
+    "checks": [
+      "9 and10 faults",
+      "Anomaly named and explained",
+      "LRU/OPT stack property"
+    ],
+    "source": "Virtual-memory lecture",
+    "minutes": 5
+  },
+  {
+    "id": 34,
+    "topic": "Storage",
+    "title": "Flash is not a spinning disk",
+    "kind": "Explain",
+    "prompt": "Explain why SSTF is meaningful for HDDs but not directly the same optimization for SSDs. Include erase blocks and wear leveling.",
+    "answer": "HDD seek movement is mechanical and dominates many random accesses; SSTF reduces immediate seek distance but can starve distant requests. SSDs have no head seek; controller parallelism, latency and write amplification matter. Flash programs pages and erases larger blocks, often using out-of-place updates and garbage collection; wear leveling distributes finite erase cycles.",
+    "checks": [
+      "Mechanical seek difference",
+      "SSTF starvation",
+      "Page program/block erase",
+      "Wear leveling"
+    ],
+    "source": "Mass-storage lecture",
+    "minutes": 5
+  },
+  {
+    "id": 35,
+    "topic": "I/O",
+    "title": "Interrupt, polling or DMA",
+    "kind": "Explain",
+    "prompt": "For a large disk-to-RAM transfer, compare polling, interrupt-driven programmed I/O and DMA. Does DMA eliminate all CPU involvement?",
+    "answer": "Polling repeatedly checks status and can waste CPU. Interrupt-driven I/O lets CPU do other work but service interrupts as needed. DMA controller transfers data between device and memory after CPU setup, then signals completion; CPU still configures buffers, handles completion/errors and coherency as needed.",
+    "checks": [
+      "Polling cost",
+      "Interrupt benefit/overhead",
+      "DMA data path",
+      "CPU setup/completion remains"
+    ],
+    "source": "I/O lecture",
+    "minutes": 5
+  },
+  {
+    "id": 36,
+    "topic": "I/O",
+    "title": "Buffer, cache, spool",
+    "kind": "Explain",
+    "prompt": "Distinguish buffering, caching and printer spooling using a concrete example.",
+    "answer": "Buffering temporarily stages data to handle rate/size mismatches, e.g. incoming network bytes. Caching retains copies to speed reuse, e.g. recently read disk blocks. Spooling queues complete jobs for an exclusive device, e.g. printer jobs stored on disk. A print call may finish queuing before the physical printer starts; scheduling and device availability determine printing.",
+    "checks": [
+      "Rate mismatch",
+      "Reuse",
+      "Exclusive-device job queue",
+      "Submission versus physical completion"
+    ],
+    "source": "I/O lecture; historical final Q13",
+    "minutes": 5
+  },
+  {
+    "id": 37,
+    "topic": "Files",
+    "title": "Trace open and read",
+    "kind": "Implement",
+    "prompt": "Describe pathname resolution, inode, per-process fd table and open-file description when opening then reading a regular file. Where is the offset?",
+    "answer": "Resolve directory components and permissions to inode. Allocate an open-file description (offset and flags, inode reference), then fd entry pointing to it. read validates fd, uses offset and inode block mapping, consults cache/does I/O, copies bytes, advances the open-file description offset. Independent opens usually have distinct offsets; dup/fork can share the same description.",
+    "checks": [
+      "Path and inode resolution",
+      "fd versus open-file description",
+      "Cache/block mapping",
+      "Offset sharing semantics"
+    ],
+    "source": "File-system lectures; review slides",
+    "minutes": 8
+  },
+  {
+    "id": 38,
+    "topic": "Files",
+    "title": "Linked allocation record lookup",
+    "kind": "Calculate",
+    "prompt": "File already open; block1024B; record100B. Read zero-based record200 in a linked allocation scheme. Assume full1024B payload per data block and no cached block links.",
+    "answer": "Byte offset=200\u00d7100=20000. Logical block=floor(20000/1024)=19; offset544. Record occupies bytes544\u2013643, within block19. Follow chain from first block through19 links to reach target (20 block visits including target, absent caching). Resolve fd\u2192open description\u2192inode/first block; obtain data and copy100B. If pointer bytes reduce payload, arithmetic changes.",
+    "checks": [
+      "Explicit numbering/payload assumption",
+      "Block19 offset544",
+      "Chain traversal",
+      "fd/inode/data path"
+    ],
+    "source": "Historical final2016 Q14; clarified assumptions",
+    "minutes": 5
+  },
+  {
+    "id": 39,
+    "topic": "Files",
+    "title": "Allocation methods compared",
+    "kind": "Explain",
+    "prompt": "Choose allocation for a file needing random access and unpredictable growth. Compare contiguous, linked and indexed storage.",
+    "answer": "Contiguous allocation supports fast sequential/random access but growth may require relocation and can cause external fragmentation. Linked allocation grows easily but requires following links for random access and has pointer overhead. Indexed allocation maps logical blocks through index entries, supports growth and random access at metadata/lookup cost. Indexed/extents may suit this use case depending on workload.",
+    "checks": [
+      "Three access/growth tradeoffs",
+      "Metadata cost",
+      "Justified choice"
+    ],
+    "source": "File-system implementation lecture",
+    "minutes": 5
+  },
+  {
+    "id": 40,
+    "topic": "Files",
+    "title": "Hard links and unlink",
+    "kind": "Trace",
+    "prompt": "A file has two hard links and one open descriptor. Unlink both names, then read through the descriptor and close it. When is storage reclaimed? Compare a symbolic link.",
+    "answer": "Unlink removes directory entries and decrements inode link count. At zero links, the open reference keeps file data accessible through the descriptor; storage is reclaimed once the last open reference is released. A symlink stores a pathname and does not add a hard link to target inode; it may dangle after target removal.",
+    "checks": [
+      "Names versus inode",
+      "Open reference preserves data",
+      "Reclaim after close",
+      "Symlink distinction"
+    ],
+    "source": "File-system interface lecture",
+    "minutes": 5
+  },
+  {
+    "id": 41,
+    "topic": "Files",
+    "title": "Free-space bitmap",
+    "kind": "Calculate",
+    "prompt": "A volume has1TiB usable bytes and4KiB allocation blocks. How many bitmap bits and bytes are needed? Explain atomic allocation and crash consistency.",
+    "answer": "2^40/2^12=2^28 blocks. One bit each gives2^28 bits=2^25 bytes=32MiB. Allocations must serialize competing updates to avoid double allocation. Persistent bitmap and inode/block references need consistent update ordering or journaling/recovery to avoid leaks or double references after crashes.",
+    "checks": [
+      "2^28 blocks",
+      "32MiB bitmap",
+      "Concurrent allocation protection",
+      "Persistent consistency"
+    ],
+    "source": "File-system implementation lecture",
+    "minutes": 5
+  },
+  {
+    "id": 42,
+    "topic": "Files",
+    "title": "Safe directory removal",
+    "kind": "Implement",
+    "prompt": "Outline removal of an empty directory in a multilevel file system, excluding root/current-directory special cases. Include errors, metadata and concurrency.",
+    "answer": "Resolve parent and final entry; validate type, permissions and policy; lock relevant metadata and recheck emptiness excluding . and ..; remove parent entry, adjust directory/parent link counts and timestamps, persist changes using filesystem consistency protocol. Reclaim blocks/inode when no remaining references require them. Fail for missing/nonempty/unauthorized paths; do not recursively delete without specification.",
+    "checks": [
+      "Resolution and validation",
+      "Emptiness and locking",
+      "Link/metadata updates",
+      "Crash consistency and errors"
+    ],
+    "source": "Historical final2016 Q15; file-system lectures",
+    "minutes": 8
+  },
+  {
+    "id": 43,
+    "topic": "Scheduling",
+    "title": "Priority inversion versus starvation",
+    "kind": "Explain",
+    "prompt": "A high-priority thread waits for a mutex held by a low-priority thread; medium-priority CPU work keeps arriving. Explain priority inversion and inheritance.",
+    "answer": "The high-priority thread indirectly waits for the medium-priority work that prevents the lock owner running. Priority inheritance temporarily boosts the owner to the waiting high priority until release. Aging instead addresses starvation from repeated scheduling preference; it is not the same mechanism.",
+    "checks": [
+      "Identify lock dependency",
+      "Medium tasks delay lock owner",
+      "Temporary owner boost",
+      "Distinguish aging"
+    ],
+    "source": "Scheduling and synchronization lectures",
+    "minutes": 5
+  },
+  {
+    "id": 44,
+    "topic": "Scheduling",
+    "title": "Estimate the next CPU burst",
+    "kind": "Calculate",
+    "prompt": "Exponential prediction: next=\u03b1\u00d7last_actual+(1\u2212\u03b1)\u00d7previous_prediction. \u03b1=0.5, prediction8ms. Actual bursts4ms then10ms. Compute the next two predictions; explain \u03b1 extremes.",
+    "answer": "After4ms: prediction6ms. After10ms: prediction8ms. \u03b1=1 uses only last observed burst; \u03b1=0 never changes the initial prediction. SJF uses estimates because exact future bursts are generally unknown.",
+    "checks": [
+      "6ms",
+      "8ms",
+      "Alpha extremes",
+      "Prediction rationale"
+    ],
+    "source": "Scheduling lecture; historical final burst prediction",
+    "minutes": 5
+  },
+  {
+    "id": 45,
+    "topic": "Synchronization",
+    "title": "Dining philosophers without a cycle",
+    "kind": "Implement",
+    "prompt": "Five philosophers each need left and right forks. Explain why picking left then right can deadlock. Design a resource-ordering repair and discuss starvation.",
+    "answer": "All can hold a left fork while waiting for a neighbor\u2019s fork, forming a cycle. Number forks0..4 and always acquire lower numbered fork before higher, releasing both after eating. A strictly increasing acquisition order prevents circular wait. Mutual exclusion remains; starvation freedom still depends on scheduling and lock fairness.",
+    "checks": [
+      "All-hold-one deadlock",
+      "Global fork ordering",
+      "Cycle prevention proof",
+      "Fairness qualified"
+    ],
+    "source": "Synchronization lecture",
+    "minutes": 8
+  },
+  {
+    "id": 46,
+    "topic": "Synchronization",
+    "title": "Reusable barrier hazard",
+    "kind": "Implement",
+    "prompt": "A,B,C each perform phase1 then phase2, repeating. Can one counting semaphore initialized0 implement a reusable barrier by each posting then waiting three times? Explain and propose a safer structure.",
+    "answer": "No: each thread contributes one token but consumes three, so total demand9 exceeds supply3. Even balanced naive token schemes can let fast threads consume tokens from the wrong generation. Use a mutex-protected arrival count and generation number with a condition-variable while loop; last arrival increments generation, resets count and broadcasts. Others wait while their captured generation is current.",
+    "checks": [
+      "Token accounting",
+      "Generation mixing concern",
+      "Arrival count and generation protected",
+      "Predicate loop and broadcast"
+    ],
+    "source": "Synchronization lecture; original extension",
+    "minutes": 8
+  },
+  {
+    "id": 47,
+    "topic": "Memory",
+    "title": "Protection and relocation",
+    "kind": "Calculate",
+    "prompt": "A process uses base14000 and limit4000 in a simple relocation scheme. Translate logical addresses3999 and4000. Why must user code be unable to change these registers?",
+    "answer": "3999 is valid since0<=3999<4000; physical17999. 4000 equals limit and is invalid, so trap without translation. Base/limit changes are privileged so a process cannot map other processes or kernel memory. Logical validity is checked before adding the base.",
+    "checks": [
+      "Strict bound",
+      "17999",
+      "4000 faults",
+      "Privileged protection"
+    ],
+    "source": "Main-memory lecture",
+    "minutes": 5
+  },
+  {
+    "id": 48,
+    "topic": "Virtual memory",
+    "title": "Optimal replacement by future use",
+    "kind": "Trace",
+    "prompt": "Three empty frames; references1,2,3,4,1,2,5,1,2,3,4,5. Use OPT. On ties evict lowest frame. Count faults and give each victim.",
+    "answer": "First1,2,3 cause three faults. On4 evict3 (used furthest in future), then1,2 hit. On5 evict4. Then1,2 hit. On3 evict1 (1 and2 both never used again; lowest frame wins). On4 evict3 (3 and2 never used again; lowest frame wins). Last5 hits. Seven faults. OPT needs future knowledge and is a comparison bound rather than a general online policy.",
+    "checks": [
+      "Seven faults",
+      "Victims3,4,1,3",
+      "Tie rule respected",
+      "Future knowledge limitation"
+    ],
+    "source": "Virtual-memory lecture",
+    "minutes": 5
+  },
+  {
+    "id": 49,
+    "topic": "Storage",
+    "title": "SCAN versus C-SCAN",
+    "kind": "Calculate",
+    "prompt": "Disk0\u2013199, head100 moving up, requests20,80,120,180. Count travel until final request for SCAN and C-SCAN, including wrap.",
+    "answer": "SCAN serves120,180, reaches199, reverses to80 then20. Travel99+179=278. C-SCAN serves120,180, reaches199, wraps0, then20,80. Travel99+199+80=378. C-SCAN provides more uniform directional waiting at extra movement; do not silently omit the wrap.",
+    "checks": [
+      "SCAN order and278",
+      "C-SCAN order and378",
+      "Endpoint distinction",
+      "Wrap counted"
+    ],
+    "source": "Mass-storage lecture",
+    "minutes": 5
+  },
+  {
+    "id": 50,
+    "topic": "Files",
+    "title": "Permission checks on a pathname",
+    "kind": "Explain",
+    "prompt": "On a Unix-like system, distinguish directory read, write and execute permissions. Why might reading a file fail even when the file\u2019s read bit permits it?",
+    "answer": "Directory read permits listing names; execute/search permits traversing and looking up entries; write permits modifying directory entries subject to search permission and other rules. Opening a file requires traversal permission on path directories plus permission on the target. ACLs and other policies may impose further restrictions. Directory write is not the same as permission to modify file contents.",
+    "checks": [
+      "Read names",
+      "Execute traverse",
+      "Write entries",
+      "Path versus target checks"
+    ],
+    "source": "File-system interface lecture",
+    "minutes": 5
+  },
+  {
+    "id": 51,
+    "topic": "Files",
+    "title": "Sequential versus direct access",
+    "kind": "Explain",
+    "prompt": "A database needs to fetch record100000 without reading earlier records. Compare sequential and direct access and explain the role of block mapping.",
+    "answer": "Sequential access advances through records in order. Direct access seeks to a computed logical offset for fixed-size records. The file system must still map that logical block to physical storage: contiguous or indexed allocation supports this efficiently; linked allocation may need chain traversal. An API that accepts an offset does not guarantee constant-time storage lookup.",
+    "checks": [
+      "Access model difference",
+      "Offset calculation role",
+      "Mapping/allocation dependency",
+      "API versus implementation"
+    ],
+    "source": "File-system interface and implementation lectures",
+    "minutes": 5
+  },
+  {
+    "id": 52,
+    "topic": "Foundations",
+    "title": "Mechanism, policy and kernel structure",
+    "kind": "Explain",
+    "prompt": "Distinguish mechanism from policy with scheduling. Compare monolithic, layered and microkernel structures in one concrete tradeoff each.",
+    "answer": "Context save/restore and timer interrupts are mechanisms; deciding which ready task runs is policy. Monolithic designs allow direct internal calls but have a broad fault domain. Layering organizes interfaces and dependencies but can constrain efficient cross-layer operations. Microkernels move services to processes, improving isolation/modularity at IPC and scheduling costs. Real systems often combine approaches.",
+    "checks": [
+      "Mechanism/policy example",
+      "Monolithic tradeoff",
+      "Layering tradeoff",
+      "Microkernel tradeoff"
+    ],
+    "source": "OS structures lecture",
+    "minutes": 5
+  }
+]
